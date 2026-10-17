@@ -35,11 +35,6 @@ dev-dependencies = [
     "rich>=15.0.0",
 ]
 
-[tool.uv.scripts]
-serve = "uvicorn controle_gastos.main:app --reload"
-test = "pytest"
-migrate = "alembic upgrade head"
-
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
