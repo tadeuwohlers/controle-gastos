@@ -5,6 +5,8 @@ from fastapi import FastAPI
 
 from controle_gastos.api.categorias import router as categorias_router
 from controle_gastos.api.contas import router as contas_router
+from controle_gastos.api.parcelamentos import router as parcelamentos_router
+from controle_gastos.api.relatorios import router as relatorios_router
 from controle_gastos.api.transacoes import router as transacoes_router
 
 
@@ -18,3 +20,5 @@ app = FastAPI(title="Controle de Gastos", version="0.1.0", lifespan=lifespan)
 app.include_router(contas_router, prefix="/api/v1")
 app.include_router(categorias_router, prefix="/api/v1")
 app.include_router(transacoes_router, prefix="/api/v1")
+app.include_router(parcelamentos_router, prefix="/api/v1")
+app.include_router(relatorios_router, prefix="/api/v1")

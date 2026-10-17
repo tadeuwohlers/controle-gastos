@@ -31,8 +31,12 @@ async def test_listar_categorias_vazia(client: AsyncClient) -> None:
 
 
 async def test_listar_categorias_ordenada_por_nome(client: AsyncClient) -> None:
-    await client.post("/api/v1/categorias", json={"nome": "Transporte", "tipo": "gasto"})
-    await client.post("/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"})
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Transporte", "tipo": "gasto"}
+    )
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"}
+    )
     response = await client.get("/api/v1/categorias")
     assert response.status_code == 200
     nomes = [c["nome"] for c in response.json()]
@@ -41,8 +45,12 @@ async def test_listar_categorias_ordenada_por_nome(client: AsyncClient) -> None:
 
 
 async def test_listar_categorias_filtro_gasto(client: AsyncClient) -> None:
-    await client.post("/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"})
-    await client.post("/api/v1/categorias", json={"nome": "Salário", "tipo": "receita"})
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"}
+    )
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Salário", "tipo": "receita"}
+    )
     response = await client.get("/api/v1/categorias?tipo=gasto")
     assert response.status_code == 200
     data = response.json()
@@ -51,8 +59,12 @@ async def test_listar_categorias_filtro_gasto(client: AsyncClient) -> None:
 
 
 async def test_listar_categorias_filtro_receita(client: AsyncClient) -> None:
-    await client.post("/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"})
-    await client.post("/api/v1/categorias", json={"nome": "Salário", "tipo": "receita"})
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"}
+    )
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Salário", "tipo": "receita"}
+    )
     response = await client.get("/api/v1/categorias?tipo=receita")
     assert response.status_code == 200
     data = response.json()
@@ -61,7 +73,9 @@ async def test_listar_categorias_filtro_receita(client: AsyncClient) -> None:
 
 
 async def test_criar_categoria_duplicada_retorna_409(client: AsyncClient) -> None:
-    await client.post("/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"})
+    await client.post(
+        "/api/v1/categorias", json={"nome": "Alimentação", "tipo": "gasto"}
+    )
     response = await client.post(
         "/api/v1/categorias", json={"nome": "Alimentação", "tipo": "receita"}
     )

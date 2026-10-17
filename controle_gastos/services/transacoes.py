@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from typing import Any, Type, TypeVar
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -9,13 +9,13 @@ from controle_gastos.models.conta import Conta
 from controle_gastos.models.transacao import Transacao
 from controle_gastos.schemas.transacao import TransacaoPatch, TransacaoPut
 
-T = TypeVar("T")
-
 _MSG_PARCELA_ALTERAR = "Parcelas só podem ser alteradas via Parcelamento."
-_MSG_PARCELA_EXCLUIR = "Parcelas só podem ser excluídas via cancelamento do Parcelamento."
+_MSG_PARCELA_EXCLUIR = (
+    "Parcelas só podem ser excluídas via cancelamento do Parcelamento."
+)
 
 
-def get_or_404(db: Session, model: Type[T], id: int, detail: str) -> T:
+def get_or_404[T](db: Session, model: type[T], id: int, detail: str) -> T:
     obj = db.get(model, id)
     if obj is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
@@ -43,7 +43,9 @@ def _assert_avulsa(transacao: Transacao) -> None:
 
 def criar_transacao_avulsa(db: Session, payload: Any) -> Transacao:
     get_or_404(db, Conta, payload.conta_id, "Conta não encontrada.")
-    categoria = get_or_404(db, Categoria, payload.categoria_id, "Categoria não encontrada.")
+    categoria = get_or_404(
+        db, Categoria, payload.categoria_id, "Categoria não encontrada."
+    )
     _validate_tipo_categoria(categoria, payload.tipo)
 
     transacao = Transacao(
@@ -60,12 +62,16 @@ def criar_transacao_avulsa(db: Session, payload: Any) -> Transacao:
     return transacao
 
 
-def atualizar_transacao_avulsa(db: Session, id: int, payload: TransacaoPut) -> Transacao:
+def atualizar_transacao_avulsa(
+    db: Session, id: int, payload: TransacaoPut
+) -> Transacao:
     transacao: Transacao = get_or_404(db, Transacao, id, "Transação não encontrada.")
     _assert_avulsa(transacao)
 
     get_or_404(db, Conta, payload.conta_id, "Conta não encontrada.")
-    categoria = get_or_404(db, Categoria, payload.categoria_id, "Categoria não encontrada.")
+    categoria = get_or_404(
+        db, Categoria, payload.categoria_id, "Categoria não encontrada."
+    )
     _validate_tipo_categoria(categoria, transacao.tipo)
 
     transacao.valor = payload.valor
@@ -73,7 +79,7 @@ def atualizar_transacao_avulsa(db: Session, id: int, payload: TransacaoPut) -> T
     transacao.competencia = payload.competencia
     transacao.conta_id = payload.conta_id
     transacao.categoria_id = payload.categoria_id
-    transacao.atualizada_em = datetime.now(timezone.utc)
+    transacao.atualizada_em = datetime.now(UTC)
     db.commit()
     db.refresh(transacao)
     return transacao
@@ -101,7 +107,7 @@ def patch_transacao_avulsa(db: Session, id: int, payload: TransacaoPatch) -> Tra
     if payload.competencia is not None:
         transacao.competencia = payload.competencia
 
-    transacao.atualizada_em = datetime.now(timezone.utc)
+    transacao.atualizada_em = datetime.now(UTC)
     db.commit()
     db.refresh(transacao)
     return transacao

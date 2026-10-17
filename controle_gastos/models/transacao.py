@@ -26,9 +26,12 @@ class Transacao(Base):
     descricao: Mapped[str] = mapped_column(String(255), nullable=False)
     competencia: Mapped[date] = mapped_column(Date(), nullable=False)
     conta_id: Mapped[int] = mapped_column(ForeignKey("contas.id"), nullable=False)
-    categoria_id: Mapped[int] = mapped_column(ForeignKey("categorias.id"), nullable=False)
-    # FK para parcelamentos diferida para Fase 4 (evita dependência circular na migration)
-    parcelamento_id: Mapped[int | None] = mapped_column(Integer(), nullable=True)
+    categoria_id: Mapped[int] = mapped_column(
+        ForeignKey("categorias.id"), nullable=False
+    )
+    parcelamento_id: Mapped[int | None] = mapped_column(
+        ForeignKey("parcelamentos.id"), nullable=True
+    )
     numero_parcela: Mapped[int | None] = mapped_column(Integer(), nullable=True)
     criada_em: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now(), nullable=False

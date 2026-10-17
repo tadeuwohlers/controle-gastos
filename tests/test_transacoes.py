@@ -56,17 +56,30 @@ async def transacao_avulsa(
 async def transacao_parcela(
     db_session: Session, conta: dict, cat_gasto: dict
 ) -> object:
-    """Insere transação com parcelamento_id diretamente — FK diferida para Fase 4."""
+    """Cria parcelamento + transação ligada a ele diretamente no DB."""
+    from controle_gastos.models.parcelamento import Parcelamento
     from controle_gastos.models.transacao import Transacao
+
+    parc = Parcelamento(
+        descricao="Fixture parcela",
+        valor_total=Decimal("300.00"),
+        num_parcelas=3,
+        primeira_parcela=date(2026, 10, 1),
+        conta_id=conta["id"],
+        categoria_id=cat_gasto["id"],
+        status="ativo",
+    )
+    db_session.add(parc)
+    db_session.flush()
 
     t = Transacao(
         tipo="gasto",
-        valor=Decimal("300.00"),
-        descricao="Parcela 1/12",
+        valor=Decimal("100.00"),
+        descricao="Parcela 1/3",
         competencia=date(2026, 10, 1),
         conta_id=conta["id"],
         categoria_id=cat_gasto["id"],
-        parcelamento_id=999,
+        parcelamento_id=parc.id,
         numero_parcela=1,
     )
     db_session.add(t)
@@ -334,7 +347,10 @@ async def test_put_parcela_retorna_422(
         },
     )
     assert response.status_code == 422
-    assert "Parcelas só podem ser alteradas via Parcelamento" in response.json()["detail"]
+    assert (
+        "Parcelas só podem ser alteradas via Parcelamento"
+        in response.json()["detail"]
+    )
 
 
 async def test_patch_parcela_retorna_422(
@@ -345,7 +361,10 @@ async def test_patch_parcela_retorna_422(
         f"/api/v1/transacoes/{tid}", json={"descricao": "Tentativa"}
     )
     assert response.status_code == 422
-    assert "Parcelas só podem ser alteradas via Parcelamento" in response.json()["detail"]
+    assert (
+        "Parcelas só podem ser alteradas via Parcelamento"
+        in response.json()["detail"]
+    )
 
 
 async def test_delete_parcela_retorna_422(
