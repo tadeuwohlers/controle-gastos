@@ -35,3 +35,33 @@ A money-inflow transaction recorded by the user (e.g., salary, freelance payment
 ## Transação
 
 Umbrella term for any recorded financial event — either a Gasto or a Receita. Every Transação is associated with exactly one Conta and one Categoria of the matching type.
+
+---
+
+## Balanço Mensal / Monthly Balance
+
+`total_receitas − total_gastos` for a given Competência. Positive = surplus; negative = deficit.
+
+## Cancelamento / Cancellation
+
+The act of setting a Parcelamento's status to `cancelado`. Removes all Parcelas whose Competência is strictly in the future (relative to the current month in `America/Sao_Paulo`); preserves the current month's and all past Parcelas.
+
+## Competência / Competence Month
+
+The month/year (stored as `YYYY-MM-01`) in which a Transação is accounted. For a Parcelamento, each Parcela's Competência is the month it falls due, not the month the original purchase was made.
+
+## get_today()
+
+An injectable dependency (FastAPI `Depends`) that returns today's date in the `America/Sao_Paulo` timezone. Tests override it via `app.dependency_overrides` to control the notion of "now."
+
+## Parcelas Ativas / Active Installments
+
+A report listing all Parcelas belonging to `ativo` Parcelamentos whose Competência is equal to or later than the current month.
+
+## Transação Avulsa / Standalone Transaction
+
+A Gasto or Receita that is not linked to any Parcelamento (`parcelamento_id IS NULL`). Only standalone transactions may be edited or deleted directly; Parcelas are managed exclusively through their Parcelamento.
+
+## Valor Total / Total Amount
+
+The full purchase amount entered when creating a Parcelamento. The system divides it into N installments: `floor(total * 100 / N) / 100` for the first N−1, with any remaining cent going to the last Parcela.
