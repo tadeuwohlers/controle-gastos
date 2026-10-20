@@ -14,7 +14,7 @@ make migrate   # apply pending migrations
 - Type hints on all function signatures
 - Docstrings on business logic methods; skip trivial getters/setters
 - Models in `controle_gastos/models/`
-- Pydantic schemas in `controle_gastas/schemas/`
+- Pydantic schemas in `controle_gastos/schemas/`
 - API endpoints in `controle_gastos/api/`
 
 ## Architecture
