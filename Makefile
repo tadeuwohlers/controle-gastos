@@ -1,22 +1,21 @@
-.PHONY: dev test lint format migrate
+.PHONY: dev db test lint format migrate
+
+# Raiz do monorepo: delega para cada app. Comandos do app web serão adicionados com apps/web.
+
+db:
+	docker compose up -d postgres
 
 dev:
-	uv run uvicorn controle_gastos.main:app --reload --host 0.0.0.0 --port 8000
+	$(MAKE) -C apps/api dev
 
 test:
-	uv run pytest -v
-
-test-watch:
-	uv run pytest -v --tb=short -x
+	$(MAKE) -C apps/api test
 
 lint:
-	uv run ruff check controle_gastos tests
+	$(MAKE) -C apps/api lint
 
 format:
-	uv run ruff format controle_gastos tests
+	$(MAKE) -C apps/api format
 
 migrate:
-	uv run alembic upgrade head
-
-migrate-create:
-	uv run alembic revision --autogenerate -m "$(MSG)"
+	$(MAKE) -C apps/api migrate
