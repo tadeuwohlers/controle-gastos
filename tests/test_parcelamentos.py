@@ -3,6 +3,11 @@ from decimal import Decimal
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import event
+from sqlalchemy.orm import Session
+
+from controle_gastos.models.parcelamento import Parcelamento
+from controle_gastos.models.transacao import Transacao
 
 pytestmark = pytest.mark.asyncio
 
@@ -234,3 +239,31 @@ async def test_cancelar_ja_cancelado_retorna_422(
     r2 = await client.post(f"/api/v1/parcelamentos/{pid}/cancelar")
     assert r2.status_code == 422
     assert "já cancelado" in r2.json()["detail"].lower()
+
+
+# ── atomicidade ─────────────────────────────────────────────────────────────
+
+
+async def test_criar_parcelamento_falha_no_segundo_insert_faz_rollback(
+    client: AsyncClient, db_session: Session, conta: dict, cat_gasto: dict
+) -> None:
+    chamadas = 0
+
+    def _falha_na_segunda(mapper, connection, target) -> None:
+        nonlocal chamadas
+        chamadas += 1
+        if chamadas == 2:
+            raise RuntimeError("falha simulada no 2º INSERT de Transacao")
+
+    event.listen(Transacao, "before_insert", _falha_na_segunda)
+    try:
+        with pytest.raises(RuntimeError, match="falha simulada"):
+            await client.post(
+                "/api/v1/parcelamentos", json=_payload(conta["id"], cat_gasto["id"])
+            )
+    finally:
+        event.remove(Transacao, "before_insert", _falha_na_segunda)
+
+    db_session.rollback()
+    assert db_session.query(Parcelamento).count() == 0
+    assert db_session.query(Transacao).count() == 0

@@ -19,7 +19,7 @@ def get_or_404[T](db: Session, model: type[T], id: int, detail: str) -> T:
     obj = db.get(model, id)
     if obj is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
-    return obj  # type: ignore[return-value]
+    return obj
 
 
 def _validate_tipo_categoria(categoria: Any, tipo: str) -> None:

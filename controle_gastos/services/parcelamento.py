@@ -1,5 +1,6 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -20,7 +21,7 @@ def _get_or_404[T](db: Session, model: type[T], id: int, detail: str) -> T:
     obj = db.get(model, id)
     if obj is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
-    return obj  # type: ignore[return-value]
+    return obj
 
 
 def _add_months(d: date, months: int) -> date:
@@ -33,7 +34,7 @@ def _add_months(d: date, months: int) -> date:
 
 def calcular_parcelas(
     valor_total: Decimal, num_parcelas: int, primeira_parcela: date
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """
     Divide valor_total em num_parcelas usando aritmética inteira para evitar
     drift. A última parcela absorve o resíduo de centavos.
