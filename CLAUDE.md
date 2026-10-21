@@ -2,6 +2,7 @@
 
 ```
 apps/api/     # API REST (Python/FastAPI) — ver apps/api/CLAUDE.md
+apps/web/     # Front-end (Next.js) — ver apps/web/CLAUDE.md
 docs/         # intent/, spec/, plan/, adr/, agents/
 GLOSSARY.md   # vocabulário do domínio (fonte única)
 ```
@@ -17,6 +18,9 @@ make test      # run API test suite
 make lint      # run API linter
 make format    # auto-format API code
 make migrate   # apply pending API migrations
+make dev-web   # start web dev server
+make build-web # build web
+make lint-web  # lint web
 ```
 
 ## Agent skills

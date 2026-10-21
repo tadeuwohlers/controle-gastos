@@ -1,6 +1,6 @@
-.PHONY: dev db test lint format migrate
+.PHONY: dev dev-web build-web lint-web db test lint format migrate
 
-# Raiz do monorepo: delega para cada app. Comandos do app web serão adicionados com apps/web.
+# Raiz do monorepo: delega para cada app. Sem prefixo = API; sufixo -web = Next.js.
 
 db:
 	docker compose up -d postgres
@@ -19,3 +19,12 @@ format:
 
 migrate:
 	$(MAKE) -C apps/api migrate
+
+dev-web:
+	npm --prefix apps/web run dev
+
+build-web:
+	npm --prefix apps/web run build
+
+lint-web:
+	npm --prefix apps/web run lint
