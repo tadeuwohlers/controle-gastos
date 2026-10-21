@@ -105,6 +105,17 @@ async def test_criar_parcelamento_num_parcelas_1_retorna_422(
     assert r.status_code == 422
 
 
+@pytest.mark.parametrize("valor_total", [0, -100.00])
+async def test_criar_parcelamento_valor_total_invalido_retorna_422(
+    client: AsyncClient, conta: dict, cat_gasto: dict, valor_total: float
+) -> None:
+    r = await client.post(
+        "/api/v1/parcelamentos",
+        json=_payload(conta["id"], cat_gasto["id"], valor_total=valor_total),
+    )
+    assert r.status_code == 422
+
+
 async def test_criar_parcelamento_conta_inexistente_retorna_404(
     client: AsyncClient, cat_gasto: dict
 ) -> None:
@@ -239,6 +250,14 @@ async def test_cancelar_ja_cancelado_retorna_422(
     r2 = await client.post(f"/api/v1/parcelamentos/{pid}/cancelar")
     assert r2.status_code == 422
     assert "já cancelado" in r2.json()["detail"].lower()
+
+
+async def test_cancelar_id_inexistente_retorna_404(
+    client: AsyncClient, freeze_today
+) -> None:
+    freeze_today(date(2026, 10, 17))
+    r = await client.post("/api/v1/parcelamentos/9999/cancelar")
+    assert r.status_code == 404
 
 
 # ── atomicidade ─────────────────────────────────────────────────────────────
