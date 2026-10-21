@@ -1,4 +1,4 @@
-.PHONY: dev dev-web build-web lint-web db test lint format migrate
+.PHONY: dev dev-web build-web lint-web gen-api db test lint format migrate
 
 # Raiz do monorepo: delega para cada app. Sem prefixo = API; sufixo -web = Next.js.
 
@@ -28,3 +28,9 @@ build-web:
 
 lint-web:
 	npm --prefix apps/web run lint
+
+# Regenera os tipos TypeScript do web a partir do OpenAPI da API.
+gen-api:
+	cd apps/api && uv run python -m scripts.export_openapi > openapi.json
+	npm --prefix apps/web run gen:api
+	rm -f apps/api/openapi.json
