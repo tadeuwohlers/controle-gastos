@@ -9,6 +9,8 @@ class Settings(BaseSettings):
         "postgresql+psycopg://controle_gastos:dev_password@localhost:5432/controle_gastos_test"
     )
 
+    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
