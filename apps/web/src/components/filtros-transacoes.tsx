@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Categoria, Conta } from "@/lib/dados";
 
@@ -22,8 +23,17 @@ export function FiltrosTransacoes({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Trocas em sequência rápida partem da URL já pedida, não da que ainda está na tela
+  // (o `router.replace` de uma página dinâmica demora a refletir em `searchParams`).
+  const pedido = useRef<URLSearchParams | null>(null);
+  const atual = searchParams.toString();
+  useEffect(() => {
+    pedido.current = null;
+  }, [atual]);
+
   function definir(chave: string, valor: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = pedido.current ?? new URLSearchParams(atual);
+    pedido.current = params;
     if (valor === "") params.delete(chave);
     else params.set(chave, valor);
     const qs = params.toString();

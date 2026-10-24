@@ -36,7 +36,7 @@ export function CompetenciaPicker() {
       <button type="button" className={botao} aria-label="Mês anterior" onClick={() => ir(deslocar(mes, -1))}>
         ←
       </button>
-      <span className="min-w-40 text-center font-medium capitalize" aria-live="polite">
+      <span className="min-w-40 text-center font-medium first-letter:uppercase" aria-live="polite">
         {formatar(mes)}
       </span>
       <button type="button" className={botao} aria-label="Próximo mês" onClick={() => ir(deslocar(mes, 1))}>

@@ -1,4 +1,4 @@
-.PHONY: dev dev-web build-web lint-web gen-api db test lint format migrate
+.PHONY: dev dev-web build-web lint-web e2e-web gen-api db test lint format migrate
 
 # Raiz do monorepo: delega para cada app. Sem prefixo = API; sufixo -web = Next.js.
 
@@ -28,6 +28,10 @@ build-web:
 
 lint-web:
 	npm --prefix apps/web run lint
+
+# E2E (Playwright) contra a API e o banco `controle_gastos_test`; precisa do `make db`.
+e2e-web:
+	npm --prefix apps/web run e2e
 
 # Regenera os tipos TypeScript do web a partir do OpenAPI da API.
 gen-api:

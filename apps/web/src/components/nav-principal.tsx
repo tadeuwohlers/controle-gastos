@@ -24,7 +24,7 @@ export function NavPrincipal() {
             key={href}
             href={href}
             aria-current={ativo ? "page" : undefined}
-            className={`px-3 py-3 text-sm md:rounded-md md:py-1.5 ${
+            className={`px-2 py-3 text-sm md:rounded-md md:px-3 md:py-1.5 ${
               ativo ? "font-semibold underline underline-offset-4" : "hover:bg-foreground/5"
             }`}
           >
