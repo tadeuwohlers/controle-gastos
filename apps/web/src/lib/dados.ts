@@ -26,6 +26,20 @@ export async function listarTransacoes(filtros: {
   return ou(await api.GET("/api/v1/transacoes", { params: { query: filtros } }));
 }
 
-export async function listarParcelamentos() {
-  return ou(await api.GET("/api/v1/parcelamentos"));
+export async function listarParcelamentos(status?: "ativo" | "cancelado" | null) {
+  return ou(
+    await api.GET("/api/v1/parcelamentos", {
+      params: { query: status ? { status } : {} },
+    }),
+  );
 }
+
+/** `null` quando o Parcelamento não existe (404); outras falhas lançam. */
+export async function lerParcelamento(id: number): Promise<ParcelamentoDetalhe | null> {
+  const r = await api.GET("/api/v1/parcelamentos/{id}", { params: { path: { id } } });
+  if (r.response.status === 404) return null;
+  return ou(r);
+}
+
+export type Parcelamento = components["schemas"]["ParcelamentoRead"];
+export type ParcelamentoDetalhe = components["schemas"]["ParcelamentoReadComParcelas"];
