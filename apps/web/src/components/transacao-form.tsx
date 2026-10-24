@@ -7,6 +7,7 @@ import { ErroInline, MENSAGEM_SERVIDOR } from "@/components/erro-inline";
 import { api } from "@/lib/api/client";
 import type { Categoria, Conta, Transacao } from "@/lib/dados";
 import { executar } from "@/lib/mutacao";
+import { validarParcelado, type ErrosParcelado } from "@/lib/parcelamento";
 import {
   armazenamentoLocal,
   contaPadrao,
@@ -17,6 +18,7 @@ import {
   type Payload,
   type Tipo,
 } from "@/lib/transacao-form";
+import type { PayloadParcelamento } from "@/lib/parcelamento";
 
 const campo =
   "w-full rounded-md border border-foreground/30 bg-background px-2 py-1.5 text-sm";
@@ -83,12 +85,16 @@ export function TransacaoForm({
           categoriaId: "",
         },
   );
-  const [erros, setErros] = useState<ErrosForm>({});
+  const [erros, setErros] = useState<ErrosForm & ErrosParcelado>({});
+  const [parcelado, setParcelado] = useState(false);
+  const [numParcelas, setNumParcelas] = useState("");
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [salvoMsg, setSalvoMsg] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [criando, setCriando] = useState<"conta" | "categoria" | null>(null);
-  const [pendente, setPendente] = useState<{ payload: Payload; nova: boolean } | null>(null);
+  const [pendente, setPendente] = useState<
+    { payload: Payload; nova: boolean } | { parcelamento: PayloadParcelamento } | null
+  >(null);
 
   const categoriasDoTipo = categorias.filter((c) => c.tipo === estado.tipo);
 
@@ -98,7 +104,29 @@ export function TransacaoForm({
 
   function mudarTipo(tipo: Tipo) {
     setEstado((e) => ({ ...e, tipo, categoriaId: "" }));
+    if (tipo === "receita") setParcelado(false);
     setCriando(null);
+  }
+
+  async function enviarParcelamento(payload: PayloadParcelamento) {
+    setPendente({ parcelamento: payload });
+    setOcupado(true);
+    setAviso(null);
+    const r = await executar(() => api.POST("/api/v1/parcelamentos", { body: payload }));
+    setOcupado(false);
+    if (!r.ok) {
+      setAviso(
+        r.tipo === "servidor"
+          ? { mensagem: MENSAGEM_SERVIDOR, reenviavel: true }
+          : { mensagem: r.mensagem, reenviavel: false },
+      );
+      return;
+    }
+    setPendente(null);
+    salvarUltimaConta(payload.conta_id, armazenamentoLocal());
+    router.refresh();
+    onFechar();
+    router.push(`/parcelamentos/${r.data.id}`);
   }
 
   async function enviar(payload: Payload, nova: boolean) {
@@ -142,6 +170,17 @@ export function TransacaoForm({
 
   function submeter(nova: boolean) {
     setSalvoMsg(null);
+    if (parcelado && !edicao) {
+      const p = validarParcelado(estado, numParcelas);
+      if (!p.ok) {
+        setErros(p.erros);
+        setAviso(null);
+        return;
+      }
+      setErros({});
+      void enviarParcelamento(p.payload);
+      return;
+    }
     const v = validar(estado);
     if (!v.ok) {
       setErros(v.erros);
@@ -165,7 +204,10 @@ export function TransacaoForm({
           mensagem={aviso.mensagem}
           onTentarDeNovo={
             aviso.reenviavel && pendente
-              ? () => void enviar(pendente.payload, pendente.nova)
+              ? () =>
+                  "parcelamento" in pendente
+                    ? void enviarParcelamento(pendente.parcelamento)
+                    : void enviar(pendente.payload, pendente.nova)
               : undefined
           }
         />
@@ -198,7 +240,32 @@ export function TransacaoForm({
         </fieldset>
       )}
 
-      <Campo rotulo="Valor" erro={erros.valor}>
+      {!edicao && (
+        <fieldset className="flex gap-4 text-sm">
+          <legend className="mb-1 font-medium">Pagamento</legend>
+          {([false, true] as const).map((p) => {
+            const desabilitado = p && estado.tipo === "receita";
+            return (
+              <label
+                key={String(p)}
+                className={`flex items-center gap-1.5 ${desabilitado ? "opacity-50" : ""}`}
+                title={desabilitado ? "Parcelado vale só para Gasto." : undefined}
+              >
+                <input
+                  type="radio"
+                  name="pagamento"
+                  checked={parcelado === p}
+                  disabled={desabilitado}
+                  onChange={() => setParcelado(p)}
+                />
+                {p ? "Parcelado" : "À vista"}
+              </label>
+            );
+          })}
+        </fieldset>
+      )}
+
+      <Campo rotulo={parcelado ? "Valor total" : "Valor"} erro={erros.valor}>
         <input
           ref={valorRef}
           className={campo}
@@ -218,7 +285,19 @@ export function TransacaoForm({
         />
       </Campo>
 
-      <Campo rotulo="Competência" erro={erros.competencia}>
+      {parcelado && (
+        <Campo rotulo="Número de parcelas" erro={erros.numParcelas}>
+          <input
+            className={campo}
+            inputMode="numeric"
+            placeholder="2"
+            value={numParcelas}
+            onChange={(e) => setNumParcelas(e.target.value)}
+          />
+        </Campo>
+      )}
+
+      <Campo rotulo={parcelado ? "Primeira parcela" : "Competência"} erro={erros.competencia}>
         <input
           className={campo}
           type="month"
@@ -296,7 +375,7 @@ export function TransacaoForm({
         <button type="button" className={botao} onClick={onFechar}>
           Cancelar
         </button>
-        {!edicao && (
+        {!edicao && !parcelado && (
           <button type="button" className={botao} disabled={ocupado} onClick={() => submeter(true)}>
             Salvar e nova
           </button>
