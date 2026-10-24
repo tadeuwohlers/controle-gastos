@@ -267,6 +267,106 @@ async def test_listar_transacoes(
     assert len(response.json()) == 1
 
 
+@pytest.fixture
+async def transacoes_variadas(client: AsyncClient) -> dict:
+    """2 contas x 2 categorias, em 2 competências, para testar filtros."""
+    contas = []
+    for nome in ("Nubank", "Itaú"):
+        r = await client.post("/api/v1/contas", json={"nome": nome})
+        contas.append(r.json())
+    cats = []
+    for nome in ("Alimentação", "Transporte"):
+        r = await client.post(
+            "/api/v1/categorias", json={"nome": nome, "tipo": "gasto"}
+        )
+        cats.append(r.json())
+    combos = [
+        ("2026-10", 0, 0),
+        ("2026-10", 0, 1),
+        ("2026-10", 1, 0),
+        ("2026-11", 0, 0),
+    ]
+    for comp, ci, ki in combos:
+        r = await client.post(
+            "/api/v1/transacoes",
+            json={
+                "tipo": "gasto",
+                "valor": 10,
+                "descricao": f"{comp}-{ci}-{ki}",
+                "competencia": comp,
+                "conta_id": contas[ci]["id"],
+                "categoria_id": cats[ki]["id"],
+            },
+        )
+        assert r.status_code == 201
+    return {"contas": contas, "cats": cats}
+
+
+async def _descricoes(client: AsyncClient, **params: object) -> list[str]:
+    response = await client.get("/api/v1/transacoes", params=params)
+    assert response.status_code == 200
+    return [t["descricao"] for t in response.json()]
+
+
+async def test_listar_sem_filtro_retorna_tudo_ordenado(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    assert await _descricoes(client) == [
+        "2026-11-0-0",
+        "2026-10-1-0",
+        "2026-10-0-1",
+        "2026-10-0-0",
+    ]
+
+
+async def test_listar_filtro_competencia(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    assert await _descricoes(client, competencia="2026-11") == ["2026-11-0-0"]
+    assert len(await _descricoes(client, competencia="2026-10")) == 3
+
+
+async def test_listar_filtro_conta_id(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    conta_id = transacoes_variadas["contas"][1]["id"]
+    assert await _descricoes(client, conta_id=conta_id) == ["2026-10-1-0"]
+
+
+async def test_listar_filtro_categoria_id(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    cat_id = transacoes_variadas["cats"][1]["id"]
+    assert await _descricoes(client, categoria_id=cat_id) == ["2026-10-0-1"]
+
+
+async def test_listar_filtros_combinados(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    conta_id = transacoes_variadas["contas"][0]["id"]
+    cat_id = transacoes_variadas["cats"][0]["id"]
+    assert await _descricoes(
+        client, competencia="2026-10", conta_id=conta_id, categoria_id=cat_id
+    ) == ["2026-10-0-0"]
+
+
+async def test_listar_competencia_invalida_retorna_422(
+    client: AsyncClient,
+) -> None:
+    response = await client.get(
+        "/api/v1/transacoes", params={"competencia": "2026-13"}
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "competencia deve estar no formato YYYY-MM."
+
+
+async def test_listar_conta_inexistente_retorna_lista_vazia(
+    client: AsyncClient, transacoes_variadas: dict
+) -> None:
+    assert await _descricoes(client, conta_id=99999) == []
+    assert await _descricoes(client, categoria_id=99999) == []
+
+
 async def test_get_transacao_por_id(
     client: AsyncClient, transacao_avulsa: dict
 ) -> None:

@@ -16,7 +16,7 @@
 | 3 | Editar / Excluir Transações | Transação avulsa (Gasto ou Receita não vinculada a Parcelamento): pode ser editada (PUT/PATCH) e excluída (DELETE). Parcelas só se alteram via operações no Parcelamento (cancelamento). |
 | 4 | Operações em Conta / Categoria | MVP suporta apenas **criar** e **listar**. Renomear, excluir e desativar ficam fora. |
 | 5 | Fuso horário | Todas as datas são armazenadas como `DATE` (sem hora). "Hoje" é sempre calculado em `America/Sao_Paulo`. Testes injetam uma dependência `get_today()` para controlar a data. |
-| 6 | Moeda, filtros e paginação | Apenas BRL. Listagem de Transações é simples, sem paginação. Filtros (mês, conta, categoria) só aparecem nos endpoints de relatório. |
+| 6 | Moeda, filtros e paginação | Apenas BRL. Listagem de Transações não tem paginação; aceita filtros opcionais por competência, conta e categoria (ver `GET /api/v1/transacoes`). Os endpoints de relatório têm filtro de competência próprio. |
 
 ---
 
@@ -253,7 +253,17 @@ Cria uma Transação avulsa (Gasto ou Receita).
 
 #### `GET /api/v1/transacoes`
 
-Lista todas as Transações (avulsas e Parcelas), ordenadas por `competencia DESC`, depois `id DESC`. Sem paginação no MVP.
+Lista as Transações (avulsas e Parcelas), ordenadas por `competencia DESC`, depois `id DESC`. Sem paginação no MVP.
+
+**Query params (todos opcionais, combinados com AND):**
+- `competencia` — `YYYY-MM`; só Transações dessa competência.
+- `conta_id` — só Transações dessa Conta.
+- `categoria_id` — só Transações dessa Categoria.
+
+**Erros:**
+- `422` — `competencia` fora do formato `YYYY-MM` (`"competencia deve estar no formato YYYY-MM."`).
+
+`conta_id`/`categoria_id` inexistente não é erro: retorna lista vazia.
 
 **Response 200:** array de objetos com os mesmos campos do POST 201.
 
@@ -471,7 +481,7 @@ Lista todas as Parcelas de Parcelamentos `ativo` cuja competência é igual ou p
 - Renomear, excluir ou desativar Contas e Categorias.
 - Excluir Parcelamento (apenas cancelamento é suportado).
 - Paginação na listagem de Transações.
-- Filtros por conta/categoria fora dos endpoints de relatório.
+- Outros filtros na listagem de Transações (intervalo de datas, tipo, texto) além de `competencia`, `conta_id` e `categoria_id`.
 - Suporte a moedas além de BRL.
 
 ---

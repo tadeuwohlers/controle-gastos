@@ -47,7 +47,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Transacoes */
+        /**
+         * List Transacoes
+         * @description Lista Transações; filtros opcionais combinam com AND.
+         */
         get: operations["list_transacoes_api_v1_transacoes_get"];
         put?: never;
         /** Create Transacao */
@@ -601,7 +604,11 @@ export interface operations {
     };
     list_transacoes_api_v1_transacoes_get: {
         parameters: {
-            query?: never;
+            query?: {
+                competencia?: string | null;
+                conta_id?: number | null;
+                categoria_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -615,6 +622,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TransacaoRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
