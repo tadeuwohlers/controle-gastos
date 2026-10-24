@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, Response, status
+from datetime import date
+
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
+from controle_gastos.api.relatorios import _resolve_competencia
 from controle_gastos.database import get_db
+from controle_gastos.dependencies import get_today
 from controle_gastos.models.transacao import Transacao
 from controle_gastos.schemas.transacao import (
     TransacaoCreate,
@@ -28,12 +32,24 @@ def create_transacao(
 
 
 @router.get("", response_model=list[TransacaoRead])
-def list_transacoes(db: Session = Depends(get_db)) -> list[Transacao]:
-    return (
-        db.query(Transacao)
-        .order_by(Transacao.competencia.desc(), Transacao.id.desc())
-        .all()
-    )
+def list_transacoes(
+    competencia: str | None = Query(default=None),
+    conta_id: int | None = Query(default=None),
+    categoria_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+    today: date = Depends(get_today),
+) -> list[Transacao]:
+    """Lista Transações; filtros opcionais combinam com AND."""
+    query = db.query(Transacao)
+    if competencia is not None:
+        query = query.filter(
+            Transacao.competencia == _resolve_competencia(competencia, today)
+        )
+    if conta_id is not None:
+        query = query.filter(Transacao.conta_id == conta_id)
+    if categoria_id is not None:
+        query = query.filter(Transacao.categoria_id == categoria_id)
+    return query.order_by(Transacao.competencia.desc(), Transacao.id.desc()).all()
 
 
 @router.get("/{id}", response_model=TransacaoRead)
