@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { ErroInline } from "@/components/erro-inline";
 
 export function ConfirmDialog({
@@ -25,6 +25,7 @@ export function ConfirmDialog({
   onFechar: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const tituloId = useId();
 
   useEffect(() => {
     const d = ref.current;
@@ -37,9 +38,10 @@ export function ConfirmDialog({
     <dialog
       ref={ref}
       onClose={onFechar}
+      aria-labelledby={tituloId}
       className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-lg border border-foreground/20 bg-background p-5 text-foreground backdrop:bg-black/40"
     >
-      <h2 className="mb-2 text-lg font-semibold">{titulo}</h2>
+      <h2 id={tituloId} className="mb-2 text-lg font-semibold">{titulo}</h2>
       <div className="mb-4 text-sm text-foreground/80">{children}</div>
       {erro && (
         <div className="mb-4">

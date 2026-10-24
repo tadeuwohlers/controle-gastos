@@ -21,6 +21,7 @@ make migrate   # apply pending API migrations
 make dev-web   # start web dev server
 make build-web # build web
 make lint-web  # lint web
+make e2e-web   # E2E do web (Playwright, banco controle_gastos_test)
 ```
 
 ## Agent skills

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { MENSAGEM_SERVIDOR } from "@/components/erro-inline";
+import { ErroInline, MENSAGEM_SERVIDOR } from "@/components/erro-inline";
 import { api } from "@/lib/api/client";
 import { executar } from "@/lib/mutacao";
 import { plural, previaCancelamento } from "@/lib/parcelamento";
@@ -23,6 +23,7 @@ export function CancelarParcelamento({
   const [erro, setErro] = useState<string | null>(null);
   const [reenviavel, setReenviavel] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [avisoErro, setAvisoErro] = useState<string | null>(null);
 
   // A prévia é recalculada a cada abertura do diálogo (o mês pode virar).
   const previa = aberto ? previaCancelamento(parcelas) : null;
@@ -36,6 +37,7 @@ export function CancelarParcelamento({
     setOcupado(false);
     if (r.ok) {
       setAberto(false);
+      setAvisoErro(null);
       setAviso(
         `Parcelamento cancelado. ${plural(r.data.parcelas_removidas, "parcela futura removida", "parcelas futuras removidas")}; ${plural(r.data.parcelas_preservadas, "preservada", "preservadas")}.`,
       );
@@ -47,9 +49,10 @@ export function CancelarParcelamento({
       setReenviavel(true);
       return;
     }
-    // 422 "já cancelado" (outra aba) ou 404: mostra a mensagem e recarrega.
-    setErro(r.mensagem);
-    setReenviavel(false);
+    // 422 "já cancelado" (outra aba) ou 404: a página recarregada tira o botão e o
+    // diálogo, então a mensagem vai para o aviso da página, que sobrevive ao refresh.
+    setAberto(false);
+    setAvisoErro(r.mensagem);
     router.refresh();
   }
 
@@ -60,6 +63,7 @@ export function CancelarParcelamento({
           {aviso}
         </p>
       )}
+      {avisoErro && <ErroInline mensagem={avisoErro} />}
       {ativo && (
         <button
           type="button"

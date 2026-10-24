@@ -1,3 +1,11 @@
+# Web
+
+Front-end do Controle de Gastos (Next.js). Comandos e convenções em [CLAUDE.md](CLAUDE.md).
+
+Para rodar o E2E: `make db` e depois `npm run e2e` (detalhes em [CLAUDE.md](CLAUDE.md#e2e-playwright)).
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
