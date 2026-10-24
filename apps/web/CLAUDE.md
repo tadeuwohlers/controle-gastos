@@ -10,6 +10,7 @@ Veja também `AGENTS.md` (gerado pelo Next.js): consulte `node_modules/next/dist
 npm run dev     # dev server (porta 3000)
 npm run build   # build de produção
 npm run lint    # eslint
+npm run test    # vitest (testes unitários dos helpers)
 ```
 
 ## Conventions
