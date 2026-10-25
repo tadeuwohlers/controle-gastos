@@ -1,4 +1,4 @@
-.PHONY: dev dev-web build-web lint-web e2e-web gen-api db test lint format migrate dev-mobile dev-mobile-ios dev-mobile-android lint-mobile test-mobile build-mobile
+.PHONY: dev dev-web build-web lint-web e2e-web gen-api db test lint format migrate dev-mobile dev-mobile-ios dev-mobile-android lint-mobile test-mobile build-mobile e2e-mobile
 
 # Raiz do monorepo: delega para cada app. Sem prefixo = API; sufixo -web = Next.js;
 # sufixo -mobile = Flutter.
@@ -70,3 +70,10 @@ test-mobile:
 build-mobile:
 	cd apps/mobile && flutter build apk --debug --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
 	cd apps/mobile && flutter build ios --simulator --debug --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
+
+# E2E (integration_test) contra a API e o banco `controle_gastos_test`; precisa do `make db`
+# e de um simulador iOS (padrão) ou emulador Android abertos:
+#   make e2e-mobile                      # simulador iOS
+#   make e2e-mobile E2E_DEVICE=android   # emulador Android
+e2e-mobile:
+	apps/mobile/scripts/e2e.sh

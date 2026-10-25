@@ -29,6 +29,7 @@ make dev-mobile API_URL=http://<ip>:8000  # aparelho físico no mesmo Wi-Fi
 make test-mobile  # testes do app (gera o openapi.json do teste de contrato)
 make lint-mobile  # flutter analyze
 make build-mobile # compila APK debug e app do simulador iOS
+make e2e-mobile   # E2E do app (integration_test, banco controle_gastos_test); E2E_DEVICE=android p/ emulador
 ```
 
 ## Agent skills

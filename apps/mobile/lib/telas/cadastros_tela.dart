@@ -189,22 +189,19 @@ class _NovaContaState extends ConsumerState<_NovaConta> with _Envio {
       child: Column(
         children: [
           avisos(_enviar),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: nome,
-                  decoration: const InputDecoration(labelText: 'Nova Conta'),
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _enviar(),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: enviando ? null : _enviar,
-                child: const Text('Adicionar Conta'),
-              ),
-            ],
+          TextField(
+            controller: nome,
+            decoration: const InputDecoration(labelText: 'Nova Conta'),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _enviar(),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: enviando ? null : _enviar,
+              child: const Text('Adicionar Conta'),
+            ),
           ),
         ],
       ),
@@ -247,24 +244,19 @@ class _NovaCategoriaState extends ConsumerState<_NovaCategoria> with _Envio {
             onSelectionChanged: (s) => setState(() => tipo = s.first),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: nome,
-                  decoration: const InputDecoration(
-                    labelText: 'Nova Categoria',
-                  ),
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _enviar(),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: enviando ? null : _enviar,
-                child: const Text('Adicionar Categoria'),
-              ),
-            ],
+          TextField(
+            controller: nome,
+            decoration: const InputDecoration(labelText: 'Nova Categoria'),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _enviar(),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: enviando ? null : _enviar,
+              child: const Text('Adicionar Categoria'),
+            ),
           ),
         ],
       ),

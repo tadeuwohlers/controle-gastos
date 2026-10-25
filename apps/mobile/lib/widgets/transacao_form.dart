@@ -480,27 +480,20 @@ class _CriarInlineState extends State<_CriarInline> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_falhaRede) AvisoComRetry(onTentar: _criar),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _nome,
-                decoration: InputDecoration(
-                  labelText: widget.rotulo,
-                  errorText: erro,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: FilledButton.tonal(
-                onPressed: _enviando ? null : _criar,
-                child: Text(widget.acao),
-              ),
-            ),
-          ],
+        TextField(
+          controller: _nome,
+          decoration: InputDecoration(
+            labelText: widget.rotulo,
+            errorText: erro,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.tonal(
+            onPressed: _enviando ? null : _criar,
+            child: Text(widget.acao),
+          ),
         ),
       ],
     );

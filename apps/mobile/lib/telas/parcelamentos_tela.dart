@@ -8,6 +8,7 @@ import 'package:controle_gastos/lib/competencia.dart' as comp;
 import 'package:controle_gastos/lib/dinheiro.dart';
 import 'package:controle_gastos/widgets/async_vista.dart';
 import 'package:controle_gastos/widgets/estado_vazio.dart';
+import 'package:controle_gastos/widgets/linha_adaptativa.dart';
 import 'package:controle_gastos/widgets/selo_status.dart';
 import 'package:controle_gastos/widgets/transacao_sheet.dart';
 
@@ -90,29 +91,10 @@ class _ParcelamentosTelaState extends ConsumerState<ParcelamentosTela> {
                     itemCount: lista.length,
                     itemBuilder: (context, i) {
                       final p = lista[i];
-                      return ListTile(
-                        title: Text(p.descricao),
-                        subtitle: Text(
-                          '${p.numParcelas}× · 1ª em '
-                          '${comp.formatar(p.primeiraParcela)}\n'
-                          '${nomeCategoria[p.categoriaId] ?? '—'} • '
-                          '${nomeConta[p.contaId] ?? '—'}',
-                        ),
-                        isThreeLine: true,
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              formatBRL(p.valorTotal),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            SeloStatus(p.status),
-                          ],
-                        ),
+                      return _LinhaParcelamento(
+                        parcelamento: p,
+                        categoria: nomeCategoria[p.categoriaId] ?? '—',
+                        conta: nomeConta[p.contaId] ?? '—',
                         onTap: () => context.go('/parcelamentos/${p.id}'),
                       );
                     },
@@ -123,6 +105,49 @@ class _ParcelamentosTelaState extends ConsumerState<ParcelamentosTela> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Item da lista: `LinhaAdaptativa` (valor e selo descem com fonte grande).
+class _LinhaParcelamento extends StatelessWidget {
+  const _LinhaParcelamento({
+    required this.parcelamento,
+    required this.categoria,
+    required this.conta,
+    required this.onTap,
+  });
+
+  final Parcelamento parcelamento;
+  final String categoria;
+  final String conta;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = parcelamento;
+    return LinhaAdaptativa(
+      titulo: Text(p.descricao),
+      subtitulo: Text(
+        '${p.numParcelas}× · 1ª em ${comp.formatar(p.primeiraParcela)}\n'
+        '$categoria • $conta',
+      ),
+      tresLinhas: true,
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: LinhaAdaptativa.fonteGrande(context)
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.end,
+        children: [
+          Text(
+            formatBRL(p.valorTotal),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          SeloStatus(p.status),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

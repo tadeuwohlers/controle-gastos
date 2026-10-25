@@ -14,6 +14,7 @@ import 'package:controle_gastos/widgets/async_vista.dart';
 import 'package:controle_gastos/widgets/aviso_com_retry.dart';
 import 'package:controle_gastos/widgets/confirmar_dialog.dart';
 import 'package:controle_gastos/widgets/erro_inline.dart';
+import 'package:controle_gastos/widgets/linha_adaptativa.dart';
 import 'package:controle_gastos/widgets/selo_status.dart';
 
 class ParcelamentoDetalheTela extends ConsumerStatefulWidget {
@@ -221,10 +222,10 @@ class _LinhaParcela extends StatelessWidget {
   Widget build(BuildContext context) {
     final cores = Theme.of(context).colorScheme;
     final atual = situacao == 0;
-    final linha = ListTile(
+    final linha = LinhaAdaptativa(
       tileColor: atual ? cores.primaryContainer : null,
-      title: Text('${parcela.numeroParcela}/$total'),
-      subtitle: Text(
+      titulo: Text('${parcela.numeroParcela}/$total'),
+      subtitulo: Text(
         atual
             ? '${comp.formatar(parcela.competencia)} · mês atual'
             : comp.formatar(parcela.competencia),

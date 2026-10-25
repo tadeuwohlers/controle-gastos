@@ -10,6 +10,7 @@ import 'package:controle_gastos/lib/competencia.dart' as comp;
 import 'package:controle_gastos/lib/dinheiro.dart';
 import 'package:controle_gastos/lib/resumo.dart';
 import 'package:controle_gastos/widgets/async_vista.dart';
+import 'package:controle_gastos/widgets/linha_adaptativa.dart';
 
 class ResumoTela extends ConsumerWidget {
   const ResumoTela({super.key});
@@ -200,13 +201,12 @@ class _GastosPorCategoria extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(child: Text(i.categoriaNome)),
-                    const SizedBox(width: 12),
-                    Text(formatBRL(i.total)),
-                  ],
+                // Wrap: com fonte grande o valor desce para a linha de baixo em
+                // vez de quebrar o nome da Categoria no meio.
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 12,
+                  children: [Text(i.categoriaNome), Text(formatBRL(i.total))],
                 ),
                 const SizedBox(height: 4),
                 ExcludeSemantics(
@@ -252,11 +252,11 @@ class _ParcelasAtivas extends StatelessWidget {
             child: Column(
               children: [
                 for (final p in g.itens)
-                  ListTile(
-                    title: Text(
+                  LinhaAdaptativa(
+                    titulo: Text(
                       '${p.parcelamentoDescricao}  ${p.numeroParcela}/${p.numParcelasTotal}',
                     ),
-                    subtitle: Text('${p.contaNome} · ${p.categoriaNome}'),
+                    subtitulo: Text('${p.contaNome} · ${p.categoriaNome}'),
                     trailing: Text(formatBRL(p.valor)),
                     onTap: () =>
                         context.go('/parcelamentos/${p.parcelamentoId}'),
