@@ -34,6 +34,7 @@ ParcelaAtiva parcela(int n, String competencia, String valor) => ParcelaAtiva(
 FakeRepositorio repoComResumo({String saldo = '1800.00'}) => FakeRepositorio(
   contas: [nubank, itau],
   categorias: [alimentacao, transporte, salario],
+  parcelamentos: [parcelamentoDetalhado()],
   balancos: {mesAtual: balanco('5000.00', '3200.00', saldo)},
   gastos: {
     mesAtual: GastosPorCategoria(
@@ -122,7 +123,8 @@ void main() {
     await tester.ensureVisible(find.textContaining('1/12'));
     await tester.tap(find.textContaining('1/12'));
     await tester.pumpAndSettle();
-    expect(find.text('Detalhe: em construção'), findsOneWidget);
+    expect(find.text('Parcelas'), findsOneWidget);
+    expect(find.text('Cancelar parcelamento'), findsOneWidget);
   });
 
   testWidgets('mês sem lançamentos: balanço zerado e estados vazios', (

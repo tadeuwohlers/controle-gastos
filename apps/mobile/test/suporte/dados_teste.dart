@@ -1,4 +1,5 @@
 import 'package:controle_gastos/api/modelos.dart';
+import 'package:controle_gastos/lib/competencia.dart' as comp;
 
 import 'app_teste.dart';
 import 'fake_repositorio.dart';
@@ -55,17 +56,33 @@ FakeRepositorio repoComDados() {
         numeroParcela: 2,
       ),
     ],
-    parcelamentos: [
-      Parcelamento(
-        id: 5,
-        descricao: 'Notebook',
-        valorTotal: '3600.00',
-        numParcelas: 12,
-        primeiraParcela: mesAtual,
-        contaId: 1,
-        categoriaId: 11,
-        status: StatusParcelamento.ativo,
-      ),
+    parcelamentos: [parcelamentoDetalhado()],
+  );
+}
+
+/// Parcelamento 5 (4× de R$ 300,00, Notebook): uma Parcela passada, a do mês
+/// corrente e duas futuras. Cancelado agora: removeria 2 e preservaria 2.
+Parcelamento parcelamentoDetalhado({
+  int id = 5,
+  StatusParcelamento status = StatusParcelamento.ativo,
+}) {
+  return Parcelamento(
+    id: id,
+    descricao: 'Notebook',
+    valorTotal: '1200.00',
+    numParcelas: 4,
+    primeiraParcela: comp.deslocar(mesAtual, -1),
+    contaId: 1,
+    categoriaId: 11,
+    status: status,
+    parcelas: [
+      for (var n = 1; n <= 4; n++)
+        Parcela(
+          id: 40 + n,
+          numeroParcela: n,
+          competencia: comp.deslocar(mesAtual, n - 2),
+          valor: '300.00',
+        ),
     ],
   );
 }

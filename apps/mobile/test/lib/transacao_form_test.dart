@@ -51,7 +51,10 @@ void main() {
         ),
       );
       expect(r.ok, isFalse);
-      expect(r.erros.keys, containsAll(CampoForm.values));
+      expect(
+        r.erros.keys,
+        containsAll(CampoForm.values.where((c) => c != CampoForm.numParcelas)),
+      );
     });
 
     test('valor com mais de 2 casas é erro só no valor', () {

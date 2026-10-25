@@ -25,7 +25,7 @@ void main() {
     expect(find.text('Alimentação • Nubank'), findsOneWidget);
     expect(find.text('− ${formatBRL('49.90')}'), findsOneWidget);
     expect(find.text('+ ${formatBRL('5000.00')}'), findsOneWidget);
-    expect(find.text('2/12'), findsOneWidget);
+    expect(find.text('2/4'), findsOneWidget);
   });
 
   testWidgets('filtro de tipo é aplicado no cliente', (tester) async {
@@ -77,7 +77,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Excluir'), findsNothing);
     expect(find.text('Editar'), findsNothing);
-    expect(find.text('Detalhe: em construção'), findsOneWidget);
+    expect(find.text('Parcelas'), findsOneWidget);
+    expect(find.text('Cancelar parcelamento'), findsOneWidget);
   });
 
   testWidgets('excluir pelo menu pede confirmação e remove', (tester) async {

@@ -2,7 +2,7 @@ import 'package:controle_gastos/api/modelos.dart';
 import 'package:controle_gastos/lib/competencia.dart';
 import 'package:controle_gastos/lib/dinheiro.dart';
 
-enum CampoForm { valor, descricao, competencia, conta, categoria }
+enum CampoForm { valor, descricao, competencia, conta, categoria, numParcelas }
 
 class EstadoForm {
   const EstadoForm({

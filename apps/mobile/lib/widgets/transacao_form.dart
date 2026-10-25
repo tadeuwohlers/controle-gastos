@@ -8,26 +8,30 @@ import 'package:controle_gastos/estado/invalidacao.dart';
 import 'package:controle_gastos/estado/providers.dart';
 import 'package:controle_gastos/estado/ultima_conta.dart';
 import 'package:controle_gastos/lib/dinheiro.dart';
+import 'package:controle_gastos/lib/parcelamento.dart';
 import 'package:controle_gastos/lib/transacao_form.dart';
 import 'package:controle_gastos/widgets/aviso_com_retry.dart';
 import 'package:controle_gastos/widgets/erro_inline.dart';
 import 'package:controle_gastos/widgets/seletor_mes.dart';
 
-/// Formulário de criar (ou editar, se [editar] vier) uma Transação Avulsa.
+/// Formulário de criar (ou editar, se [editar] vier) uma Transação Avulsa,
+/// ou de criar um Parcelamento (alternador "Parcelado", só para Gasto).
 /// [aoFechar] é chamado depois de "Salvar"; "Salvar e nova" mantém o
-/// formulário aberto.
+/// formulário aberto; [aoCriarParcelamento] recebe o id do Parcelamento criado.
 class TransacaoForm extends ConsumerStatefulWidget {
   const TransacaoForm({
     super.key,
     required this.competencia,
     this.editar,
     required this.aoFechar,
+    required this.aoCriarParcelamento,
   });
 
   /// Competência inicial ao criar.
   final String competencia;
   final Transacao? editar;
   final VoidCallback aoFechar;
+  final ValueChanged<int> aoCriarParcelamento;
 
   @override
   ConsumerState<TransacaoForm> createState() => _TransacaoFormState();
@@ -39,6 +43,8 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
   late final TextEditingController _valor;
   late final TextEditingController _descricao;
   final _foco = FocusNode();
+  final _numParcelas = TextEditingController();
+  bool _parcelado = false;
   int? _contaId;
   int? _categoriaId;
   Map<CampoForm, String> _erros = const {};
@@ -65,6 +71,7 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
 
   @override
   void dispose() {
+    _numParcelas.dispose();
     _valor.dispose();
     _descricao.dispose();
     _foco.dispose();
@@ -81,7 +88,64 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
     }
   }
 
+  /// Parcelado: valida, cria o Parcelamento e abre o detalhe dele.
+  Future<void> _salvarParcelado() async {
+    final r = validarParcelado(
+      EstadoForm(
+        tipo: _tipo,
+        valor: _valor.text,
+        descricao: _descricao.text,
+        competencia: _competencia,
+        contaId: _contaId,
+        categoriaId: _categoriaId,
+      ),
+      _numParcelas.text,
+    );
+    if (!r.ok) {
+      setState(() {
+        _erros = r.erros;
+        _erroApi = null;
+        _falhaRede = false;
+      });
+      return;
+    }
+    final p = r.payload!;
+    setState(() {
+      _erros = const {};
+      _erroApi = null;
+      _falhaRede = false;
+      _enviando = true;
+    });
+    final Parcelamento criado;
+    try {
+      criado = await ref
+          .read(repositorioProvider)
+          .criarParcelamento(
+            descricao: p.descricao,
+            valorTotal: p.valorTotal,
+            numParcelas: p.numParcelas,
+            primeiraParcela: p.primeiraParcela,
+            contaId: p.contaId,
+            categoriaId: p.categoriaId,
+          );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _enviando = false;
+        _falhaRede = e.ehRedeOu5xx;
+        _erroApi = e.ehRedeOu5xx ? null : e.mensagem;
+      });
+      return;
+    }
+    if (!mounted) return;
+    invalidarAposParcelamento(ref);
+    await ref.read(ultimaContaProvider).salvar(p.contaId);
+    if (!mounted) return;
+    widget.aoCriarParcelamento(criado.id);
+  }
+
   Future<void> _salvar({required bool eNova}) async {
+    if (_parcelado) return _salvarParcelado();
     final r = validar(
       EstadoForm(
         tipo: _tipo,
@@ -219,15 +283,35 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
               onSelectionChanged: (s) => setState(() {
                 _tipo = s.first;
                 _categoriaId = null;
+                // Parcelamento só existe para Gasto.
+                if (_tipo == TipoTransacao.receita) _parcelado = false;
               }),
             ),
+          if (!_editando) ...[
+            const SizedBox(height: 12),
+            SegmentedButton<bool>(
+              segments: [
+                const ButtonSegment(value: false, label: Text('À vista')),
+                ButtonSegment(
+                  value: true,
+                  label: const Text('Parcelado'),
+                  enabled: _tipo == TipoTransacao.gasto,
+                ),
+              ],
+              selected: {_parcelado},
+              onSelectionChanged: (s) => setState(() {
+                _parcelado = s.first;
+                _erros = const {};
+              }),
+            ),
+          ],
           const SizedBox(height: 12),
           TextField(
             controller: _valor,
             focusNode: _foco,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: 'Valor',
+              labelText: _parcelado ? 'Valor total' : 'Valor',
               prefixText: 'R\$ ',
               errorText: _erros[CampoForm.valor],
             ),
@@ -241,9 +325,20 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
               errorText: _erros[CampoForm.descricao],
             ),
           ),
+          if (_parcelado) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _numParcelas,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Número de parcelas',
+                errorText: _erros[CampoForm.numParcelas],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           SeletorMes(
-            rotulo: 'Competência',
+            rotulo: _parcelado ? 'Primeira parcela' : 'Competência',
             competencia: _competencia,
             erro: _erros[CampoForm.competencia],
             onChanged: (c) => setState(() => _competencia = c),
@@ -309,7 +404,7 @@ class _TransacaoFormState extends ConsumerState<TransacaoForm> {
             onPressed: _enviando ? null : () => _salvar(eNova: false),
             child: const Text('Salvar'),
           ),
-          if (!_editando) ...[
+          if (!_editando && !_parcelado) ...[
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: _enviando ? null : () => _salvar(eNova: true),

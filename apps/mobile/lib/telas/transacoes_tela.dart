@@ -96,7 +96,7 @@ class _TransacoesTelaState extends ConsumerState<TransacoesTela> {
     final categorias =
         ref.watch(categoriasProvider).asData?.value ?? const <Categoria>[];
     final parcelamentos =
-        ref.watch(parcelamentosProvider).asData?.value ??
+        ref.watch(parcelamentosProvider(null)).asData?.value ??
         const <Parcelamento>[];
 
     final categoriasDoFiltro = [
