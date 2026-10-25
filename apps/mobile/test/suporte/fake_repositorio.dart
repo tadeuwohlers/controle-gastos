@@ -10,7 +10,13 @@ class FakeRepositorio implements Repositorio {
     List<Categoria>? categorias,
     List<Transacao>? transacoes,
     List<Parcelamento>? parcelamentos,
-  }) : _contas = [...?contas],
+    Map<String, BalancoMensal>? balancos,
+    Map<String, GastosPorCategoria>? gastos,
+    List<ParcelaAtiva>? parcelasAtivasLista,
+  }) : balancos = {...?balancos},
+       gastos = {...?gastos},
+       parcelasAtivasLista = [...?parcelasAtivasLista],
+       _contas = [...?contas],
        _categorias = [...?categorias],
        _transacoes = [...?transacoes],
        _parcelamentos = [...?parcelamentos];
@@ -23,6 +29,22 @@ class FakeRepositorio implements Repositorio {
 
   final List<String> chamadas = [];
 
+  /// Relatórios por Competência; mês sem entrada devolve tudo zerado.
+  final Map<String, BalancoMensal> balancos;
+  final Map<String, GastosPorCategoria> gastos;
+  final List<ParcelaAtiva> parcelasAtivasLista;
+
+  /// Cada leitura de relatório: `balanco(2026-10)`, `gastos(2026-10)`,
+  /// `parcelasAtivas`.
+  final List<String> leituras = [];
+
+  /// Relatórios (`balanco`, `gastos`, `parcelasAtivas`) cuja próxima leitura
+  /// falha com erro de rede.
+  final Set<String> falhasDeLeitura = {};
+
+  /// Roda depois de cada mutação bem-sucedida (para mudar os relatórios).
+  void Function()? aoMutar;
+
   /// Falha a próxima mutação (e só ela) com esta exceção.
   ApiException? falharProxima;
 
@@ -33,6 +55,12 @@ class FakeRepositorio implements Repositorio {
       throw falha;
     }
     chamadas.add(chamada);
+    aoMutar?.call();
+  }
+
+  void _ler(String relatorio, String leitura) {
+    leituras.add(leitura);
+    if (falhasDeLeitura.remove(relatorio)) throw semRede();
   }
 
   static ApiException erro(int status, String detail) =>
@@ -149,6 +177,31 @@ class FakeRepositorio implements Repositorio {
     for (final p in _parcelamentos)
       if (status == null || p.status == status) p,
   ];
+
+  @override
+  Future<BalancoMensal> balancoMensal(String competencia) async {
+    _ler('balanco', 'balanco($competencia)');
+    return balancos[competencia] ??
+        BalancoMensal(
+          competencia: competencia,
+          totalReceitas: '0.00',
+          totalGastos: '0.00',
+          saldo: '0.00',
+        );
+  }
+
+  @override
+  Future<GastosPorCategoria> gastosPorCategoria(String competencia) async {
+    _ler('gastos', 'gastos($competencia)');
+    return gastos[competencia] ??
+        GastosPorCategoria(competencia: competencia, itens: const []);
+  }
+
+  @override
+  Future<List<ParcelaAtiva>> parcelasAtivas() async {
+    _ler('parcelasAtivas', 'parcelasAtivas');
+    return [...parcelasAtivasLista];
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(

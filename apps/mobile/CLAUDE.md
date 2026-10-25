@@ -8,7 +8,7 @@ App mobile em Flutter (Dart), Android e iPhone, em retrato. Cliente da mesma API
 flutter analyze                # lint (make lint-mobile)
 flutter test                   # testes (make test-mobile, que também gera o openapi.json do contrato)
 make dev-mobile-ios            # simulador iOS, API em localhost:8000
-make dev-mobile-android        # emulador Android, API em 10.0.2.2:8000
+make dev-mobile-android        # emulador Android, API em localhost:8000 (via adb reverse)
 make dev-mobile API_URL=http://<ip-do-mac>:8000   # aparelho físico no mesmo Wi-Fi
 make build-mobile              # compila APK debug e app do simulador iOS
 ```
@@ -19,7 +19,7 @@ Da raiz, `make dev` sobe a API (já escuta em `0.0.0.0:8000`) e `make db` o Post
 
 A URL da API é configuração de build: `--dart-define=API_URL=http://<host>:8000`, só a origem (os paths já incluem `/api/v1`). Sem ela o app mostra a tela "API não configurada".
 
-- Simulador iOS: `http://localhost:8000`. Emulador Android: `http://10.0.2.2:8000`.
+- Simulador iOS e emulador Android: `http://localhost:8000`. No Android, `make dev-mobile-android` roda `adb reverse tcp:8000 tcp:8000` antes (sem isso o `localhost` do emulador é o próprio emulador; o endereço do Mac visto de dentro dele é `10.0.2.2`). Instalou o APK por fora do make? Rode o `adb reverse` uma vez por emulador.
 - Aparelho físico: o IP do Mac na rede (`ipconfig getifaddr en0`); celular e Mac no mesmo Wi-Fi.
 - HTTP sem TLS: liberado só nos manifestos Android de debug/profile; no iOS, `NSAllowsLocalNetworking` e `NSLocalNetworkUsageDescription` no `Info.plist`. O release sem TLS só faz sentido com a API hospedada (outro intent).
 
