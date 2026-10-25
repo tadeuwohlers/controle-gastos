@@ -60,7 +60,7 @@ Mantidas sem alteração:
 ## Restrições
 
 - **Stack:** Flutter (Dart) em `apps/mobile`, com Material 3 e widgets próprios, sem biblioteca de componentes. Cliente da API escrito à mão sobre `package:http`, com modelos próprios; um teste de contrato contra o `apps/api/openapi.json` pega divergência. Estado com Riverpod e navegação com `go_router`. Escolha final de pacotes e versões na spec.
-- **Plataformas:** Android (celular) e iOS (iPhone), em retrato, com versões mínimas padrão do Flutter 3.32 (Android API 24+, iOS 13+). Tema claro e escuro seguindo o sistema; pt-BR fixo, sem i18n; valores em R$. Tablet, paisagem, web e desktop não são alvo.
+- **Plataformas:** Android (celular) e iOS (iPhone), em retrato, com versões mínimas padrão do Flutter 3.47 (Android API 24+, iOS 15+). Tema claro e escuro seguindo o sistema; pt-BR fixo, sem i18n; valores em R$. Tablet, paisagem, web e desktop não são alvo.
 - **Ambiente (pré-requisito):** Android SDK completo (`cmdline-tools` e licenças aceitas) e Xcode completo com simulador iOS. Hoje o `flutter doctor` acusa os dois como incompletos; o desenvolvimento pode começar no que já funciona (testes e helpers), mas o critério de pronto só fecha com as duas plataformas.
 - **Acesso à API:** a API continua só local. O celular físico a alcança pelo **Wi-Fi local**, apontando para o IP do Mac na rede; o emulador Android usa `10.0.2.2` e o simulador iOS usa `localhost`. A URL é configuração de build (`--dart-define=API_URL=...`). O `make dev` da API já escuta em `0.0.0.0:8000`. Como a conexão é HTTP sem TLS na rede local, o app precisa permitir tráfego em texto claro (Android) e acesso à rede local (iOS, com exceção de ATS e aviso de permissão); isso vale só para a configuração de desenvolvimento. CORS não se aplica a app nativo.
 - **Dinheiro:** `valor` trafega como string nos dois sentidos, ponta a ponta. A entrada aceita o formato pt-BR (`1.234,56`) e converte para string sem passar por `double`. Formatação de exibição em R$ só na camada de apresentação; nunca soma nem comparação. Os totais vêm sempre dos relatórios da API.
@@ -128,7 +128,7 @@ Não há fatia de API. O detalhamento em issues fica para o plano.
 | 10 | Ambiente | Android SDK e Xcode completos são pré-requisito do critério de pronto |
 | 11 | Cliente da API | Manual sobre `package:http`, com teste de contrato contra o `openapi.json` |
 | 12 | Estado e navegação | Riverpod e `go_router`; Material 3 sem biblioteca de componentes |
-| 13 | Plataformas | Android e iPhone, retrato, claro/escuro, pt-BR; mínimos padrão do Flutter 3.32 |
+| 13 | Plataformas | Android e iPhone, retrato, claro/escuro, pt-BR; mínimos padrão do Flutter 3.47 (Android API 24+, iOS 15+) |
 | 14 | Testes | Unitários nos helpers, widget nas telas, integração com o fluxo do web |
 | 15 | Entrega | Cinco fatias verticais, sem fatia de API |
 
