@@ -2,7 +2,7 @@
 
 **Autor:** Tadeu Wohlers  
 **Data:** 2026-10-24  
-**Status:** Rascunho  
+**Status:** Aprovado  
 **Relação com outros intents:** complementa o [intent 002](002-frontend-web-v1.md) (front-end web), cujo comportamento este app replica; herda do [intent 001](001-controle-de-gastos.md) a API e o usuário único sem autenticação.
 
 ---
@@ -137,7 +137,7 @@ Não há fatia de API. O detalhamento em issues fica para o plano.
 ## Perguntas em aberto
 
 1. **IP do Mac na rede.** O IP do Mac muda entre redes e reinícios do roteador. Basta passar o IP atual no `--dart-define`, ou vale fixar um IP/hostname (ex.: `.local` via Bonjour)? *(Resolver no Design.)*
-   - *Decisão:* —
+   - *Decisão:* basta passar o IP atual em `API_URL` (`make dev-mobile API_URL=http://<ip>:8000`); hostname `.local` não é requisito. Ver [spec 003](../spec/003-app-mobile-flutter-v1.md), decisão 1.
 
 2. **Acesso fora de casa.** Como lançar longe do Wi-Fi onde o Mac está? *(Fora de escopo; é o motivo do futuro intent de hospedagem da API.)*
-   - *Decisão:* —
+   - *Decisão:* segue fora de escopo; fica para o intent de hospedagem da API (e autenticação).

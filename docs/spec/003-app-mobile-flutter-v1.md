@@ -2,7 +2,7 @@
 
 **Autor:** Tadeu Wohlers  
 **Data:** 2026-10-24  
-**Status:** Rascunho  
+**Status:** Aprovado  
 **Intent:** [003-app-mobile-flutter-v1](../intent/003-app-mobile-flutter-v1.md)  
 **Depende de:** [Spec 001](001-controle-de-gastos.md) (API) e [Spec 002](002-frontend-web-v1.md) (comportamento de referência)
 
