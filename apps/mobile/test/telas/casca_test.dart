@@ -1,31 +1,19 @@
-import 'package:controle_gastos/app.dart';
-import 'package:controle_gastos/estado/providers.dart';
 import 'package:controle_gastos/lib/competencia.dart' as comp;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
 
-Future<void> abrir(WidgetTester tester, {String apiUrl = 'http://api.test'}) {
-  return tester.pumpWidget(
-    ProviderScope(
-      overrides: [apiUrlProvider.overrideWithValue(apiUrl)],
-      child: const App(),
-    ),
-  );
-}
+import '../suporte/app_teste.dart';
+import '../suporte/fake_repositorio.dart';
 
 void main() {
-  setUpAll(tzdata.initializeTimeZones);
+  prepararTestes();
 
   testWidgets('sem API_URL mostra o erro de configuração', (tester) async {
-    await abrir(tester, apiUrl: '');
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio(), apiUrl: '');
     expect(find.text('API não configurada'), findsOneWidget);
   });
 
   testWidgets('mostra as 4 abas e o botão Nova transação', (tester) async {
-    await abrir(tester);
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio());
     for (final rotulo in [
       'Resumo',
       'Transações',
@@ -41,13 +29,12 @@ void main() {
   testWidgets('navega entre abas; Cadastros e Parcelamentos sem seletor', (
     tester,
   ) async {
-    await abrir(tester);
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio());
     expect(find.byTooltip('Competência anterior'), findsOneWidget);
 
     await tester.tap(find.text('Transações'));
     await tester.pumpAndSettle();
-    expect(find.text('Transações: em construção'), findsOneWidget);
+    expect(find.text('Nenhuma transação neste mês.'), findsOneWidget);
     expect(find.byTooltip('Competência anterior'), findsOneWidget);
 
     await tester.tap(find.text('Parcelamentos'));
@@ -62,8 +49,7 @@ void main() {
   testWidgets('seletor desloca a Competência e "Hoje" volta ao mês corrente', (
     tester,
   ) async {
-    await abrir(tester);
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio());
     final atual = comp.competenciaAtual();
     expect(find.text(comp.formatar(atual)), findsOneWidget);
     expect(find.text('Hoje'), findsNothing);
@@ -82,8 +68,7 @@ void main() {
   testWidgets('a Competência é compartilhada entre Resumo e Transações', (
     tester,
   ) async {
-    await abrir(tester);
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio());
     await tester.tap(find.byTooltip('Próxima competência'));
     await tester.pumpAndSettle();
     final proximo = comp.formatar(comp.deslocar(comp.competenciaAtual(), 1));
@@ -94,10 +79,10 @@ void main() {
   });
 
   testWidgets('o botão abre o sheet de Nova transação', (tester) async {
-    await abrir(tester);
-    await tester.pumpAndSettle();
+    await abrirApp(tester, FakeRepositorio());
     await tester.tap(find.text('Nova transação'));
     await tester.pumpAndSettle();
-    expect(find.text('Nova transação: em construção'), findsOneWidget);
+    expect(find.text('Salvar'), findsOneWidget);
+    expect(find.text('Salvar e nova'), findsOneWidget);
   });
 }

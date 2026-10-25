@@ -14,3 +14,7 @@ final apiClientProvider = Provider<ApiClient>(
 final repositorioProvider = Provider<Repositorio>(
   (ref) => Repositorio(ref.watch(apiClientProvider)),
 );
+
+/// O Riverpod 3 repete leituras que falham, em silêncio e por vários minutos.
+/// Aqui a falha precisa aparecer na hora, com "Tentar de novo" (spec 003).
+Duration? semRetentativa(int tentativa, Object erro) => null;

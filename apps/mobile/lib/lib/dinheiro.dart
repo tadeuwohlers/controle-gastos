@@ -42,3 +42,7 @@ Sinal sinal(String valor) {
   if (RegExp(r'^-?[0.]*$').hasMatch(valor)) return Sinal.zero;
   return valor.startsWith('-') ? Sinal.negativo : Sinal.positivo;
 }
+
+/// "1234.56" -> "1234,56": volta o valor da API para o campo de entrada
+/// (sem separador de milhar, que `parseValorBR` aceita mas não exige).
+String paraEntradaBR(String valor) => valor.replaceAll('.', ',');
