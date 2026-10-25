@@ -23,7 +23,7 @@ void main() {
       expect(find.text(rotulo), findsOneWidget);
     }
     expect(find.text('Nova transação'), findsOneWidget);
-    expect(find.text('Resumo: em construção'), findsOneWidget);
+    expect(find.text('Balanço Mensal'), findsOneWidget);
   });
 
   testWidgets('navega entre abas; Cadastros e Parcelamentos sem seletor', (

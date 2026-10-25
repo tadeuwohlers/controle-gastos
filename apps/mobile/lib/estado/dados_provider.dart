@@ -33,3 +33,19 @@ final transacoesProvider =
 final parcelamentosProvider = FutureProvider<List<Parcelamento>>(
   (ref) => ref.watch(repositorioProvider).parcelamentos(),
 );
+
+final balancoProvider = FutureProvider.family<BalancoMensal, String>(
+  (ref, competencia) =>
+      ref.watch(repositorioProvider).balancoMensal(competencia),
+);
+
+final gastosPorCategoriaProvider =
+    FutureProvider.family<GastosPorCategoria, String>(
+      (ref, competencia) =>
+          ref.watch(repositorioProvider).gastosPorCategoria(competencia),
+    );
+
+/// Não recebe Competência: a API lista do mês corrente em diante.
+final parcelasAtivasProvider = FutureProvider<List<ParcelaAtiva>>(
+  (ref) => ref.watch(repositorioProvider).parcelasAtivas(),
+);

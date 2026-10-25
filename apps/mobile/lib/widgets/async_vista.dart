@@ -32,18 +32,59 @@ class AsyncVista<T> extends StatelessWidget {
     }
     final erro = valor.error;
     if (erro != null) {
-      final mensagem = erro is ApiException
-          ? (erro.ehRedeOu5xx
-                ? 'Não foi possível falar com o servidor.'
-                : extrairMensagem(erro.corpo))
-          : 'Algo deu errado. Tente de novo.';
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: AvisoComRetry(mensagem: mensagem, onTentar: onTentar),
+          child: AvisoComRetry(
+            mensagem: mensagemDeErro(erro),
+            onTentar: onTentar,
+          ),
         ),
       );
     }
     return const Center(child: CircularProgressIndicator());
+  }
+}
+
+/// Texto para o aviso de uma leitura que falhou.
+String mensagemDeErro(Object erro) {
+  if (erro is ApiException) {
+    return erro.ehRedeOu5xx
+        ? 'Não foi possível falar com o servidor.'
+        : extrairMensagem(erro.corpo);
+  }
+  return 'Algo deu errado. Tente de novo.';
+}
+
+/// Como [AsyncVista], mas para uma seção dentro de uma rolagem: sem expandir.
+class AsyncSecao<T> extends StatelessWidget {
+  const AsyncSecao({
+    super.key,
+    required this.valor,
+    required this.onTentar,
+    required this.construir,
+  });
+
+  final AsyncValue<T> valor;
+  final VoidCallback onTentar;
+  final Widget Function(BuildContext context, T dados) construir;
+
+  @override
+  Widget build(BuildContext context) {
+    if (valor.hasValue) return construir(context, valor.requireValue);
+    final erro = valor.error;
+    if (erro != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: AvisoComRetry(
+          mensagem: mensagemDeErro(erro),
+          onTentar: onTentar,
+        ),
+      );
+    }
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24),
+      child: Center(child: CircularProgressIndicator()),
+    );
   }
 }
