@@ -41,13 +41,18 @@ gen-api:
 	rm -f apps/api/openapi.json
 
 # App mobile (Flutter). A API roda no Mac (`make dev`, porta 8000, escuta em 0.0.0.0).
-# Simulador iOS e emulador Android têm padrão próprio; aparelho físico exige o IP do Mac:
+# Simulador iOS e emulador Android usam http://localhost:8000 (no Android, via
+# `adb reverse`); aparelho físico no Wi-Fi exige o IP do Mac:
 #   make dev-mobile API_URL=http://192.168.0.10:8000
+ADB ?= $(or $(ANDROID_HOME),$(HOME)/Library/Android/sdk)/platform-tools/adb
+
 dev-mobile-ios:
 	cd apps/mobile && flutter run -d ios --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
 
+# `adb reverse` faz o localhost:8000 do emulador chegar ao localhost:8000 do Mac.
 dev-mobile-android:
-	cd apps/mobile && flutter run -d android --dart-define=API_URL=$(or $(API_URL),http://10.0.2.2:8000)
+	$(ADB) reverse tcp:8000 tcp:8000
+	cd apps/mobile && flutter run -d android --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
 
 dev-mobile:
 	@test -n "$(API_URL)" || { echo "Informe API_URL=http://<ip-do-mac>:8000 (ou use dev-mobile-ios / dev-mobile-android)"; exit 1; }
@@ -63,5 +68,5 @@ test-mobile:
 
 # Compila as duas plataformas (debug, sem assinatura). API_URL só entra no binário.
 build-mobile:
-	cd apps/mobile && flutter build apk --debug --dart-define=API_URL=$(or $(API_URL),http://10.0.2.2:8000)
+	cd apps/mobile && flutter build apk --debug --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
 	cd apps/mobile && flutter build ios --simulator --debug --dart-define=API_URL=$(or $(API_URL),http://localhost:8000)
