@@ -33,30 +33,52 @@ class Casca extends ConsumerWidget {
           ? AppBar(title: const CompetenciaPicker(), centerTitle: true)
           : null,
       body: SafeArea(top: !comSeletor, child: shell),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => abrirTransacaoSheet(
-          context,
-          // Competência selecionada nas telas com seletor; o mês corrente fora delas.
-          competencia: comSeletor
-              ? ref.read(competenciaProvider)
-              : comp.competenciaAtual(),
+      floatingActionButton: _LimiteDeFonte(
+        child: FloatingActionButton.extended(
+          onPressed: () => abrirTransacaoSheet(
+            context,
+            // Competência selecionada nas telas com seletor; o mês corrente
+            // fora delas.
+            competencia: comSeletor
+                ? ref.read(competenciaProvider)
+                : comp.competenciaAtual(),
+          ),
+          icon: const Icon(Icons.add),
+          label: const Text('Nova transação'),
         ),
-        icon: const Icon(Icons.add),
-        label: const Text('Nova transação'),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: shell.currentIndex,
-        onDestinationSelected: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
-        destinations: [
-          for (final (icone, selecionado, rotulo) in _destinos)
-            NavigationDestination(
-              icon: Icon(icone),
-              selectedIcon: Icon(selecionado),
-              label: rotulo,
-            ),
-        ],
+      bottomNavigationBar: _LimiteDeFonte(
+        // Cada aba tem um quarto da largura: acima da escala normal,
+        // "Parcelamentos" quebra no meio da palavra.
+        maximo: 1.0,
+        child: NavigationBar(
+          selectedIndex: shell.currentIndex,
+          onDestinationSelected: (i) =>
+              shell.goBranch(i, initialLocation: i == shell.currentIndex),
+          destinations: [
+            for (final (icone, selecionado, rotulo) in _destinos)
+              NavigationDestination(
+                icon: Icon(icone),
+                selectedIcon: Icon(selecionado),
+                label: rotulo,
+              ),
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Barra inferior e botão flutuante ficam fixos na tela: com a fonte do sistema
+/// no máximo, os rótulos quebram no meio e o botão cobre o conteúdo. O resto
+/// do app segue a fonte do sistema sem limite.
+class _LimiteDeFonte extends StatelessWidget {
+  const _LimiteDeFonte({required this.child, this.maximo = 1.3});
+
+  final Widget child;
+  final double maximo;
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.withClampedTextScaling(maxScaleFactor: maximo, child: child);
 }

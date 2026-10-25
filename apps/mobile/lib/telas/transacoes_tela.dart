@@ -12,6 +12,7 @@ import 'package:controle_gastos/lib/dinheiro.dart';
 import 'package:controle_gastos/widgets/async_vista.dart';
 import 'package:controle_gastos/widgets/confirmar_dialog.dart';
 import 'package:controle_gastos/widgets/estado_vazio.dart';
+import 'package:controle_gastos/widgets/linha_adaptativa.dart';
 import 'package:controle_gastos/widgets/transacao_sheet.dart';
 
 class TransacoesTela extends ConsumerStatefulWidget {
@@ -310,25 +311,24 @@ class _Linha extends StatelessWidget {
               : '${t.numeroParcela}/$totalParcelas')
         : null;
 
-    final tile = ListTile(
+    final tile = LinhaAdaptativa(
       leading: Icon(
         gasto ? Icons.arrow_downward : Icons.arrow_upward,
         color: cor,
         semanticLabel: gasto ? 'Gasto' : 'Receita',
       ),
-      title: Text(t.descricao),
-      subtitle: Row(
+      titulo: Text(t.descricao),
+      subtitulo: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Flexible(child: Text('$categoria • $conta')),
-          if (selo != null) ...[
-            const SizedBox(width: 8),
+          Text('$categoria • $conta'),
+          if (selo != null)
             ActionChip(
               label: Text(selo),
-              visualDensity: VisualDensity.compact,
               tooltip: 'Abrir Parcelamento',
               onPressed: onAbrirParcelamento,
             ),
-          ],
         ],
       ),
       trailing: Text(
