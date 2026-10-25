@@ -1,6 +1,7 @@
 import 'package:controle_gastos/api/api_client.dart';
 import 'package:controle_gastos/api/modelos.dart';
 import 'package:controle_gastos/api/repositorio.dart';
+import 'package:controle_gastos/lib/competencia.dart' as comp;
 
 /// Repositório em memória para os testes de widget. Registra as mutações em
 /// [chamadas] e pode falhar a próxima mutação via [falharProxima].
@@ -41,6 +42,10 @@ class FakeRepositorio implements Repositorio {
   /// Relatórios (`balanco`, `gastos`, `parcelasAtivas`) cuja próxima leitura
   /// falha com erro de rede.
   final Set<String> falhasDeLeitura = {};
+
+  /// Números que o cancelamento devolve; sem isso, a contagem real das Parcelas
+  /// futuras. Permite provar que a mensagem final usa os números da API.
+  ResultadoCancelamento? resultadoCancelamento;
 
   /// Roda depois de cada mutação bem-sucedida (para mudar os relatórios).
   void Function()? aoMutar;
@@ -177,6 +182,79 @@ class FakeRepositorio implements Repositorio {
     for (final p in _parcelamentos)
       if (status == null || p.status == status) p,
   ];
+
+  @override
+  Future<Parcelamento> parcelamento(int id) async {
+    final i = _parcelamentos.indexWhere((p) => p.id == id);
+    if (i < 0) throw erro(404, 'Parcelamento não encontrado.');
+    return _parcelamentos[i];
+  }
+
+  @override
+  Future<Parcelamento> criarParcelamento({
+    required String descricao,
+    required String valorTotal,
+    required int numParcelas,
+    required String primeiraParcela,
+    required int contaId,
+    required int categoriaId,
+  }) async {
+    _mutar(
+      'criarParcelamento($descricao, $valorTotal, $numParcelas, '
+      '$primeiraParcela, $contaId, $categoriaId)',
+    );
+    final id = _proximoId++;
+    final p = Parcelamento(
+      id: id,
+      descricao: descricao,
+      valorTotal: valorTotal,
+      numParcelas: numParcelas,
+      primeiraParcela: primeiraParcela,
+      contaId: contaId,
+      categoriaId: categoriaId,
+      status: StatusParcelamento.ativo,
+      parcelas: [
+        for (var n = 1; n <= numParcelas; n++)
+          Parcela(
+            id: _proximoId++,
+            numeroParcela: n,
+            competencia: comp.deslocar(primeiraParcela, n - 1),
+            valor: '0.00',
+          ),
+      ],
+    );
+    _parcelamentos.add(p);
+    return p;
+  }
+
+  @override
+  Future<ResultadoCancelamento> cancelarParcelamento(int id) async {
+    _mutar('cancelarParcelamento($id)');
+    final i = _parcelamentos.indexWhere((p) => p.id == id);
+    final p = _parcelamentos[i];
+    final atual = comp.competenciaAtual();
+    final ficam = [
+      for (final x in p.parcelas)
+        if (comp.comparar(x.competencia, atual) <= 0) x,
+    ];
+    _parcelamentos[i] = Parcelamento(
+      id: p.id,
+      descricao: p.descricao,
+      valorTotal: p.valorTotal,
+      numParcelas: p.numParcelas,
+      primeiraParcela: p.primeiraParcela,
+      contaId: p.contaId,
+      categoriaId: p.categoriaId,
+      status: StatusParcelamento.cancelado,
+      parcelas: ficam,
+    );
+    return resultadoCancelamento ??
+        ResultadoCancelamento(
+          id: id,
+          parcelasRemovidas: p.parcelas.length - ficam.length,
+          parcelasPreservadas: ficam.length,
+        );
+  }
 
   @override
   Future<BalancoMensal> balancoMensal(String competencia) async {

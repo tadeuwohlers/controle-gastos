@@ -8,6 +8,15 @@ void invalidarAposTransacao(WidgetRef ref) {
   invalidarRelatorios(ref);
 }
 
+/// Criar ou cancelar um Parcelamento mexe nas Parcelas (Transações), na lista
+/// e no detalhe, e em todos os relatórios.
+void invalidarAposParcelamento(WidgetRef ref) {
+  ref.invalidate(parcelamentoProvider);
+  ref.invalidate(parcelamentosProvider);
+  ref.invalidate(transacoesProvider);
+  invalidarRelatorios(ref);
+}
+
 void invalidarRelatorios(WidgetRef ref) {
   ref.invalidate(balancoProvider);
   ref.invalidate(gastosPorCategoriaProvider);

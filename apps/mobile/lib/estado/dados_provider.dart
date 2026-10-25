@@ -29,9 +29,17 @@ final transacoesProvider =
           ),
     );
 
-/// Sem parcelas; serve para saber o total `N` do selo "n/N".
-final parcelamentosProvider = FutureProvider<List<Parcelamento>>(
-  (ref) => ref.watch(repositorioProvider).parcelamentos(),
+/// Listagem sem parcelas, opcionalmente filtrada por status. Sem filtro,
+/// também serve para saber o total `N` do selo "n/N" das Transações.
+final parcelamentosProvider =
+    FutureProvider.family<List<Parcelamento>, StatusParcelamento?>(
+      (ref, status) =>
+          ref.watch(repositorioProvider).parcelamentos(status: status),
+    );
+
+/// Detalhe, com as Parcelas.
+final parcelamentoProvider = FutureProvider.family<Parcelamento, int>(
+  (ref, id) => ref.watch(repositorioProvider).parcelamento(id),
 );
 
 final balancoProvider = FutureProvider.family<BalancoMensal, String>(
